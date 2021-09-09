@@ -20,7 +20,7 @@ import app from "./server";
  *
  * On mocking in jest: https://jestjs.io/docs/en/jest-object#jestmockmodulename-factory-options
  */
-jest.mock("./digipet/controller");
+// jest.mock("./digipet/controller");
 
 describe("GET /", () => {
   it("provides a nod to instructions in the response body", async () => {
