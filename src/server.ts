@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
-import { getDigipet } from "./digipet/model";
-import { hatchDigipet, walkDigipet } from "./digipet/controller";
+import { getDigipet} from "./digipet/model";
+import { hatchDigipet, walkDigipet, trainDigipet, feedDigipet, ignoreDigipet, rehomeDigipet } from "./digipet/controller";
 
 const app = express();
 
@@ -68,6 +68,84 @@ app.get("/digipet/walk", (req, res) => {
     res.json({
       message:
         "You don't have a digipet to walk! Try hatching one with /digipet/hatch",
+    });
+  }
+});
+
+app.get("/digipet/train", (req, res) => {
+  // check the user has a digipet to train
+  if (getDigipet()) {
+    trainDigipet();
+    res.json({
+      message: "You trained your digipet. It looks more disciplined now!",
+      digipet: getDigipet(),
+    });
+  } else {
+    res.json({
+      message:
+        "You don't have a digipet to train! Try hatching one with /digipet/hatch",
+    });
+  }
+});
+
+app.get("/digipet/feed", (req, res) => {
+  // check the user has a digipet to train
+  if (getDigipet()) {
+    feedDigipet();
+    res.json({
+      message: "You feed your digipet. It now more nutrious!",
+      digipet: getDigipet(),
+    });
+  } else {
+    res.json({
+      message:
+        "You don't have a digipet to feed! Try hatching one with /digipet/hatch",
+    });
+  }
+});
+
+app.get("/digipet/ignore", (req, res) => {
+  // check the user has a digipet to ignore
+  if (getDigipet()) {
+    console.log('Server before',getDigipet())
+    console.log(ignoreDigipet)
+    ignoreDigipet();
+    console.log('Server after',getDigipet())
+
+    if(Object.values(getDigipet()!).every(element => element > 10)){
+      res.json({
+        message: "You ignored your digipet. It now lost stats!",
+        digipet: getDigipet(),
+      });
+    } else {
+
+      const elems = Object.entries(getDigipet()!).filter(element => element[1] !== 0);
+      const rest = elems.reduce((acc,dig) => {return {...acc,[dig[0]]: dig[1]}},{});
+      // console.log(rest)
+      res.json({
+        message: "You ignored your digipet. It now lost stats!",
+        digipet: rest
+      });
+    }
+  } else {
+    res.json({
+      message:
+        "You don't have a digipet to ignore! Try hatching one with /digipet/hatch",
+    });
+  }
+});
+
+app.get("/digipet/rehome", (req, res) => {
+  // check the user has a digipet to rehome
+  if (getDigipet()) {
+    rehomeDigipet();
+      res.json({
+        message: "You have rehomed your pet! Try hatching another one with /digipet/hatch"
+      });
+  } else {
+    res.json({
+      message:
+        "You already don't have a digipet to rehome! Try hatching one with /digipet/hatch",
     });
   }
 });

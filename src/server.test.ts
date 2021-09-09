@@ -1,11 +1,12 @@
+import { toNamespacedPath } from "path";
 import supertest from "supertest";
 import {
   feedDigipet,
   hatchDigipet,
   trainDigipet,
-  walkDigipet,
+  walkDigipet,ignoreDigipet,rehomeDigipet
 } from "./digipet/controller";
-import { INITIAL_DIGIPET, setDigipet } from "./digipet/model";
+import { getDigipet, INITIAL_DIGIPET, setDigipet } from "./digipet/model";
 import app from "./server";
 
 /**
@@ -64,7 +65,11 @@ describe("GET /digipet/hatch", () => {
     setDigipet(INITIAL_DIGIPET);
 
     // act
-    const response = await supertest(app).get("/digipet/hatch");
+
+   const response = await supertest(app).get("/digipet/hatch");
+
+ 
+    
 
     // assert
     expect(response.body.message).toMatch(/can't hatch/i);
@@ -79,7 +84,11 @@ describe("GET /digipet/hatch", () => {
     setDigipet(undefined);
 
     // act
+    console.log('before',getDigipet())
+
     const response = await supertest(app).get("/digipet/hatch");
+ 
+     console.log('after',response.body)
 
     // assert
     expect(response.body.message).toMatch(/success/i);
@@ -92,8 +101,8 @@ describe("action routes", () => {
   test("when the user does not have a digipet, action routes direct them to hatch a digipet and do not call their relevant controllers", async () => {
     const routesAndControllers = {
       /* test for these once written */
-      // "/digipet/feed": feedDigipet,
-      // '/digipet/train': trainDigipet,
+      "/digipet/feed": feedDigipet,
+      '/digipet/train': trainDigipet,
       "/digipet/walk": walkDigipet,
     };
 
@@ -113,94 +122,144 @@ describe("action routes", () => {
       expect(controller).toHaveBeenCalledTimes(0);
     }
   });
+});
 
-  describe.skip("GET /digipet/feed", () => {
-    test("if the user has a digipet, it calls the feedDigipet controller and responds with a message about feeding the digipet", async () => {
-      // setup: reset digipet
-      setDigipet(INITIAL_DIGIPET);
+describe("GET /digipet/walk", () => {
+  test("if the user has a digipet, it responds with a message about the walk", async () => {
+    // setup: reset digipet
+    setDigipet(INITIAL_DIGIPET);
 
-      const response = await supertest(app).get("/digipet/feed");
+    const response = await supertest(app).get("/digipet/walk");
 
-      // response includes a relevant message
-      expect(response.body.message).toMatch(/feed/i);
+    // response includes a relevant message
+    expect(response.body.message).toMatch(/walk/i);
 
-      // response includes digipet data
-      expect(response.body.digipet).toHaveProperty("happiness");
-      expect(response.body.digipet).toHaveProperty("nutrition");
-      expect(response.body.digipet).toHaveProperty("discipline");
-    });
-
-    it("delegates state change to the feedDigipet function", async () => {
-      // setup: reset digipet and mock function
-      setDigipet(INITIAL_DIGIPET);
-
-      if (jest.isMockFunction(feedDigipet) /* type guard */) {
-        feedDigipet.mockReset();
-      }
-      // act
-      await supertest(app).get("/digipet/feed");
-      // assert
-      expect(feedDigipet).toHaveBeenCalledTimes(1);
-    });
+    // response includes digipet data
+    expect(response.body.digipet).toHaveProperty("happiness");
+    expect(response.body.digipet).toHaveProperty("nutrition");
+    expect(response.body.digipet).toHaveProperty("discipline");
   });
 
-  describe.skip("GET /digipet/train", () => {
-    test("if the user has a digipet, it calls the trainDigipet controller and responds with a message about training the digipet", async () => {
-      // setup: reset digipet
-      setDigipet(INITIAL_DIGIPET);
-
-      const response = await supertest(app).get("/digipet/train");
-
-      // mock function has been called once
-
-      // response includes a relevant message
-      expect(response.body.message).toMatch(/train/i);
-
-      // response includes digipet data
-      expect(response.body.digipet).toHaveProperty("happiness");
-      expect(response.body.digipet).toHaveProperty("nutrition");
-      expect(response.body.digipet).toHaveProperty("discipline");
-    });
-
-    it("delegates state change to the trainDigipet function", async () => {
-      // setup: reset digipet and mock function
-      setDigipet(INITIAL_DIGIPET);
-      if (jest.isMockFunction(trainDigipet) /* type guard */) {
-        trainDigipet.mockReset();
-      }
-      // act
-      await supertest(app).get("/digipet/train");
-      // assert
-      expect(trainDigipet).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe("GET /digipet/walk", () => {
-    test("if the user has a digipet, it responds with a message about the walk", async () => {
-      // setup: reset digipet
-      setDigipet(INITIAL_DIGIPET);
-
-      const response = await supertest(app).get("/digipet/walk");
-
-      // response includes a relevant message
-      expect(response.body.message).toMatch(/walk/i);
-
-      // response includes digipet data
-      expect(response.body.digipet).toHaveProperty("happiness");
-      expect(response.body.digipet).toHaveProperty("nutrition");
-      expect(response.body.digipet).toHaveProperty("discipline");
-    });
-
-    it("delegates state change to the walkDigipet function", async () => {
-      // setup: reset digipet and mock function
-      setDigipet(INITIAL_DIGIPET);
-      if (jest.isMockFunction(walkDigipet) /* type guard */) {
-        walkDigipet.mockReset();
-      }
-      // act
-      await supertest(app).get("/digipet/walk");
-      // assert
-      expect(walkDigipet).toHaveBeenCalledTimes(1);
-    });
+  it("delegates state change to the walkDigipet function", async () => {
+    // setup: reset digipet and mock function
+    setDigipet(INITIAL_DIGIPET);
+    if (jest.isMockFunction(walkDigipet) /* type guard */) {
+      walkDigipet.mockReset();
+    }
+    // act
+    await supertest(app).get("/digipet/walk");
+    // assert
+    expect(walkDigipet).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("GET /digipet/feed", () => {
+  test("if the user has a digipet, it calls the feedDigipet controller and responds with a message about feeding the digipet", async () => {
+    // setup: reset digipet
+    setDigipet(INITIAL_DIGIPET);
+
+    const response = await supertest(app).get("/digipet/feed");
+
+    // response includes a relevant message
+    expect(response.body.message).toMatch(/feed/i);
+
+    // response includes digipet data
+    expect(response.body.digipet).toHaveProperty("happiness");
+    expect(response.body.digipet).toHaveProperty("nutrition");
+    expect(response.body.digipet).toHaveProperty("discipline");
+  });
+
+  it("delegates state change to the feedDigipet function", async () => {
+    // setup: reset digipet and mock function
+    setDigipet(INITIAL_DIGIPET);
+
+    if (jest.isMockFunction(feedDigipet) /* type guard */) {
+      feedDigipet.mockReset();
+    }
+    // act
+    await supertest(app).get("/digipet/feed");
+    // assert
+    expect(feedDigipet).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("GET /digipet/train", () => {
+  test("if the user has a digipet, it calls the trainDigipet controller and responds with a message about training the digipet", async () => {
+    // setup: reset digipet
+
+    setDigipet(INITIAL_DIGIPET);
+
+    console.log('before',getDigipet())
+
+    const response = await supertest(app).get("/digipet/train");
+
+    console.log('after',getDigipet())
+    // mock function has been called once
+
+    // response includes a relevant message
+    expect(response.body.message).toMatch(/train/i);
+
+    // response includes digipet data
+    expect(response.body.digipet).toHaveProperty("happiness");
+    expect(response.body.digipet).toHaveProperty("nutrition");
+    expect(response.body.digipet).toHaveProperty("discipline");
+  });
+
+  it("delegates state change to the trainDigipet function", async () => {
+    // setup: reset digipet and mock function
+    setDigipet(INITIAL_DIGIPET);
+    if (jest.isMockFunction(trainDigipet) /* type guard */) {
+      trainDigipet.mockReset();
+    }
+    // act
+    await supertest(app).get("/digipet/train");
+    // assert
+    expect(trainDigipet).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe.only("GET /digipet/ignore", () => {
+  test("if the user has a digipet, it calls the trainDigipet controller and responds with a message about ignoring the digipet", async () => {
+    // setup
+    setDigipet(INITIAL_DIGIPET);
+    // if (jest.isMockFunction(ignoreDigipet) /* type guard */) {
+    //   ignoreDigipet.mockReset();
+    // }
+    // setup: reset digipet
+    
+    // console.log('before',getDigipet())
+
+    const response = await supertest(app).get('/digipet/ignore');
+
+    // console.log('after',getDigipet())
+    // mock function has been called once
+
+    // response includes a relevant message
+    expect(response.body.message).toMatch(/ignore/i);
+
+    // response includes digipet data
+    expect(response.body.digipet).toHaveProperty("happiness",40);
+    expect(response.body.digipet).toHaveProperty("nutrition",40);
+    expect(response.body.digipet).toHaveProperty("discipline",40);
+  });
+
+});
+
+describe("GET /digipet/rehome", () => {
+  test("if the user has a digipet, it calls the rehomeDigipet controller and responds with a message about rehoming the digipet", async () => {
+    // setup: reset digipet
+    setDigipet(INITIAL_DIGIPET);
+    const response = await supertest(app).get("/digipet/rehome");
+
+    // mock function has been called once
+
+    // response includes a relevant message
+    expect(response.body.message).toMatch(/rehomed/i);
+
+    // response includes digipet data
+    expect(response.body.digipet).toEqual(undefined);
+  });
+
+});
+
+
